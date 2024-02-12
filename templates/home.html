@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SiteDownDetector</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        let csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value
+        let clicked = false;
+
+
+        function toggleMenu() {
+            let popupMenu = document.getElementById("popup-menu");
+            if (!clicked) {
+                clicked = true;
+                popupMenu.classList.remove("hidden")
+            } else {
+                clicked = false;
+                popupMenu.classList.add("hidden")
+            }
+        }
+
+        function getStatus() {
+            let url = document.getElementById("url").value
+            console.log(url)
+            fetch('/check_status/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken,
+                },
+                body: JSON.stringify({url: url})
+            }).then(response => response.json())
+                .then(data => {
+                    let statusElement = document.getElementById("status")
+                    if (data.status_code === 200) {
+                        statusElement.innerText = "Online"
+                    } else {
+                        statusElement.innerText = "Offline"
+                    }
+                })
+                .catch(e => {
+                    console.log("Error fetching status:", e)
+                })
+
+        }
+
+        setInterval(getStatus, 5000)
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&display=swap');
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-100">
+<nav class="my-6 mx-16 flex justify-between">
+    <div>
+        <h2 class="text-2xl">SiteDownDetector</h2>
+    </div>
+    <div class="relative cursor-pointer" onclick="toggleMenu()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="1.5em" height="1.5em" viewBox="0 0 16 16">
+            <path fill="currentColor" fill-rule="evenodd"
+                  d="M0 3.75A.75.75 0 0 1 .75 3h14.5a.75.75 0 0 1 0 1.5H.75A.75.75 0 0 1 0 3.75M0 8a.75.75 0 0 1 .75-.75h14.5a.75.75 0 0 1 0 1.5H.75A.75.75 0 0 1 0 8m.75 3.5a.75.75 0 0 0 0 1.5h14.5a.75.75 0 0 0 0-1.5z"
+                  clip-rule="evenodd"></path>
+        </svg>
+    </div>
+    <div id="popup-menu"
+         class="hidden bg-gray-100 absolute rounded-lg top-12 right-24 text-gray-900 px-6 py-3 flex flex-col space-y-2">
+        <a href="#">Login</a>
+        <hr>
+        <a href="#">Need help?</a>
+    </div>
+</nav>
+
+<h1 class="text-center text-6xl mt-24 font-[Merriweather] leading-tight tracking-loose">"Stay Informed, Stay
+    Online"</h1>
+<form method="post">
+    {% csrf_token %}
+    <div class="flex justify-center items-center mt-8">
+        <input class="px-6 py-3 text-xl text-gray-900 rounded-l-md w-[600px]" id="url" name="url" type="url"
+               placeholder="Please provide your URL">
+        <input class="bg-white text-xl text-gray-600 cursor-pointer px-4 py-3 ml-0.5 rounded-r-md" onclick="getStatus()" 
+               type="submit" value="CHECK">
+    </div>
+{#    website status section #}
+    <div class="flex items-center justify-center mt-6 text-gray-900">
+        <div class="bg-blue-200 px-6 w-[690px] rounded-md py-6 text-lg">
+            <p><span class="font-semibold">URL</span>: &nbsp;<span class="underline">{{ website_url }}</span></p>
+            <p><span id="status" class="font-semibold">Status</span>: &nbsp;{{ status }}
+            <p><span class="font-semibold">Code</span>: &nbsp;{{ status_code }}</p>
+        </div>
+    </div>
+</form>
+</body>
+</html>
